@@ -1,5 +1,22 @@
 import mongoose, { Schema } from "mongoose";
 
-const commentSchema = new Schema({});
+const commentSchema = new Schema(
+  {
+    postId: {
+      type: Schema.Types.ObjectId,
+      ref: "Post",
+    },
+    content: {
+      type: String,
+      required: true,
+      maxLength: 500,
+    },
+    owner: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+  },
+  { timestamps: true }
+);
 
-export default Comment = mongoose.Model("Comment", commentSchema);
+export default Comment = mongoose.model("Comment", commentSchema);
