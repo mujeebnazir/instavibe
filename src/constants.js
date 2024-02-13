@@ -1,1 +1,1 @@
-export const DB_NAME = instavibe;
+export const DB_NAME = "instavibe";
