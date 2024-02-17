@@ -12,6 +12,11 @@ const userSchema = new Schema(
       trim: true,
       index: true,
     },
+    about: {
+      type: String,
+      required: true,
+      maxLength: 300,
+    },
     displayName: {
       type: String,
       required: true,

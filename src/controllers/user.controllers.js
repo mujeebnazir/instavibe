@@ -3,7 +3,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { User } from "../models/user.model.js";
-import mongoose from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 import jwt from "jsonwebtoken";
 
 const generateRefreshAndAccessToken = async (userId) => {
@@ -22,10 +22,10 @@ const generateRefreshAndAccessToken = async (userId) => {
 };
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { username, displayName, password, email } = req.body;
+  const { username, about, displayName, password, email } = req.body;
 
   if (
-    [displayName, email, username, password].some(
+    [displayName, about, email, username, password].some(
       (field) => field?.trim() === ""
     )
   ) {
@@ -55,6 +55,7 @@ const registerUser = asyncHandler(async (req, res) => {
   const user = await User.create({
     username: username.toLowerCase(),
     displayName,
+    about,
     email,
     password,
     profilePicture: profilePicture?.url,
@@ -188,15 +189,15 @@ const updateUserProfilePicture = asyncHandler(async (req, res) => {
 });
 
 const updateAccountDeatils = asyncHandler(async (req, res) => {
-  const { displayName, email } = req.body;
-  if (!(displayName || email)) {
-    throw new ApiError(400, "displayName or email is required");
+  const { displayName, about, email } = req.body;
+  if (!(displayName || email || about)) {
+    throw new ApiError(400, "displayName or email or About is required");
   }
 
   const user = await User.findByIdAndUpdate(
     req.user?._id,
     {
-      $set: { displayName: displayName, email: email },
+      $set: { displayName: displayName, email: email, about: about },
     },
     { new: true }
   ).select("-password");
@@ -256,4 +257,82 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   } catch (error) {
     throw new ApiError(401, error?.message || "invalid refresh token");
   }
+});
+
+const getUserProfile = asyncHandler(async (req, res) => {
+  const { username } = req.params;
+  if (!username?.trim()) {
+    throw new ApiError(400, "Username is required!");
+  }
+
+  const profile = await User.aggregate([
+    { $match: { username: username?.toLowerCase() } },
+    {
+      $lookup: {
+        from: "posts",
+        localField: "_id",
+        foreignField: "owner",
+        as: "totalposts",
+      },
+    },
+    {
+      $lookup: {
+        from: "follows",
+        localField: "_id",
+        foreignField: "followingId",
+        as: "followers",
+      },
+    },
+    {
+      $lookup: {
+        from: "follows",
+        localField: "_id",
+        foreignField: "followerId",
+        as: "following",
+      },
+    },
+    {
+      $addFields: {
+        postCount: {
+          $size: "$totalposts",
+        },
+        followerCount: {
+          $size: "$followers",
+        },
+        followingCount: {
+          $size: "$following",
+        },
+        isFollowing: {
+          $cond: {
+            if: { $in: [req.user?._id, "$following.followerId"] },
+            then: true,
+            else: false,
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        displayName: 1,
+        username: 1,
+        about: 1,
+        followerCount: 1,
+        followingCount: 1,
+        isFollowing: 1,
+        profilePicture: 1,
+        postCount: 1,
+        email: 1,
+      },
+    },
+  ]);
+
+  if (!profile?.length) {
+    throw new ApiError(404, "profile not found!!");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, profile[0], "User Profile fetched successfully")
+    );
 });
