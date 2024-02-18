@@ -5,7 +5,76 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { Post } from "../models/post.model.js";
 import mongoose, { isValidObjectId } from "mongoose";
 
-const getAllPosts = asyncHandler(async (req, res) => {});
+const getAllPosts = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 10, query, sortBy, sortType } = req.query;
+
+  // Get logged-in user ID from request (assuming it's available)
+  const currentUserId = req.user._id;
+
+  const pipeline = [];
+
+  // Join with follows collection to find users followed by the current user
+  pipeline.push({
+    $lookup: {
+      from: "follows",
+      localField: "owner", // Match owner ID of the post with followingId in follows
+      foreignField: "followingId",
+      as: "following",
+    },
+  });
+
+  // Filter posts where owner ID is present in the current user's following array
+  pipeline.push({
+    $match: {
+      owner: { $in: ["$following._id"] },
+    },
+  });
+
+  // Optional: Additional filtering based on query or userId
+  if (query) {
+    pipeline.push({
+      $match: {
+        title: { $regex: new RegExp(query, "i") },
+      },
+    });
+  }
+
+  if (currentUserId) {
+    pipeline.push({
+      $match: {
+        owner: mongoose.Types.ObjectId(userId),
+      },
+    });
+  }
+
+  // Add sorting stage if sortBy is provided
+  if (sortBy) {
+    const sortStage = {
+      $sort: {
+        [sortBy]: sortType === "desc" ? -1 : 1,
+      },
+    };
+    pipeline.push(sortStage);
+  }
+
+  // Add pagination stages
+  const skipStage = { $skip: (page - 1) * limit };
+  const limitStage = { $limit: Number(limit) };
+  pipeline.push(skipStage, limitStage);
+
+  // Perform the aggregation
+  const result = await Post.aggregate(pipeline);
+
+  if (!result) {
+    return new ApiError(400, "Error while aggregating all Posts");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, result, "Successfully fetched followed users' posts")
+    );
+});
 const createPost = asyncHandler(async (req, res) => {
   const { description } = req.body;
   const postLocalPath = req.files?.path;
@@ -98,7 +167,7 @@ const updatePost = asyncHandler(async (req, res) => {
   if (!isValidObjectId(postId)) {
     throw new ApiError(400, "Invalid post");
   }
-  if (!description) {
+  if (!description?.trim()) {
     throw new ApiError(400, " Description required");
   }
 
@@ -131,4 +200,31 @@ const deletePost = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Post not deleted or Error while deleting post");
   }
 });
-const togglePublishStatus = asyncHandler(async (req, res) => {});
+const togglePublishStatus = asyncHandler(async (req, res) => {
+  const { postId } = req.params;
+
+  if (!isValidObjectId(postId)) {
+    throw new ApiError(400, "No valid post ID available");
+  }
+
+  const postById = await Post.findById(postId);
+  const statusChanged = await Post.findByIdAndUpdate(
+    postId,
+    {
+      $set: {
+        isPublished: !postById.isPublished,
+      },
+    },
+    { new: true }
+  );
+
+  if (!statusChanged) {
+    throw new ApiError(400, "status not changed!");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, statusChanged, "post status toggled successfully")
+    );
+});
