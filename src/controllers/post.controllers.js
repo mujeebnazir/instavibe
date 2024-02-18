@@ -42,7 +42,7 @@ const getAllPosts = asyncHandler(async (req, res) => {
   if (currentUserId) {
     pipeline.push({
       $match: {
-        owner: mongoose.Types.ObjectId(userId),
+        owner: mongoose.Types.ObjectId(currentUserId),
       },
     });
   }
