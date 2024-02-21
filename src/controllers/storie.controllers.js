@@ -120,3 +120,4 @@ storieController.deleteExpiredStories();
 // Start your application logic here
 // 
 */
+export { createStorie, getActiveStories, deleteStorie };

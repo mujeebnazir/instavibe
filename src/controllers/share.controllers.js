@@ -41,3 +41,5 @@ const createShare = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, share, "Sucess while creating the share"));
 });
+
+export { createShare };

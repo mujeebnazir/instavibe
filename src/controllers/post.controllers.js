@@ -228,3 +228,12 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
       new ApiResponse(200, statusChanged, "post status toggled successfully")
     );
 });
+
+export {
+  getAllPosts,
+  createPost,
+  getThePost,
+  updatePost,
+  deletePost,
+  togglePublishStatus,
+};

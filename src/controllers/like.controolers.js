@@ -71,3 +71,5 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
     throw new ApiError(500, "Internal server error");
   }
 });
+
+export { togglePostLike, toggleCommentLike };

@@ -336,3 +336,16 @@ const getUserProfile = asyncHandler(async (req, res) => {
       new ApiResponse(200, profile[0], "User Profile fetched successfully")
     );
 });
+
+export {
+  generateRefreshAndAccessToken,
+  registerUser,
+  loginUser,
+  logoutUser,
+  changeCurrentPassword,
+  updateUserProfilePicture,
+  updateAccountDeatils,
+  getCurrentUser,
+  refreshAccessToken,
+  getUserProfile,
+};
