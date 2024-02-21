@@ -14,19 +14,19 @@ const getAllPosts = asyncHandler(async (req, res) => {
   const pipeline = [];
 
   // Join with follows collection to find users followed by the current user
-  pipeline.push({
-    $lookup: {
-      from: "follows",
-      localField: "owner", // Match owner ID of the post with followingId in follows
-      foreignField: "followingId",
-      as: "following",
-    },
-  });
+  // pipeline.push({
+  //   $lookup: {
+  //     from: "follows",
+  //     localField: "owner", // Match owner ID of the post with followingId in follows
+  //     foreignField: "followingId",
+  //     as: "following",
+  //   },
+  // });
 
   // Filter posts where owner ID is present in the current user's following array
   pipeline.push({
     $match: {
-      owner: { $in: ["$following._id"] },
+      owner: currentUserId,
     },
   });
 
