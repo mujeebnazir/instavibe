@@ -14,4 +14,4 @@ const followSchema = new Schema(
   { timestamps: true }
 );
 
-export default Follow = mongoose.model("Follow", followSchema);
+export const Follow = mongoose.model("Follow", followSchema);

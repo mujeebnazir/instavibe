@@ -11,4 +11,4 @@ const storieSchema = new Schema(
   { timestamps: true }
 );
 
-export default Storie = mongoose.model("Storie", storieSchema);
+export const Storie = mongoose.model("Storie", storieSchema);
