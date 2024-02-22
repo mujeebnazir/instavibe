@@ -27,13 +27,13 @@ router.route("/login").post(loginUser);
 //secured routes
 router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/refresh-token").post(refreshAccessToken);
-router.route("/change-password").post(verifyJWT, changeCurrentPassword);
+router.route("/change-password").patch(verifyJWT, changeCurrentPassword);
 router.route("/current-user").get(verifyJWT, getCurrentUser);
 router.route("/update-account").patch(verifyJWT, updateAccountDeatils);
 router
-  .route("/profilePicture")
+  .route("/update-profile-picture")
   .patch(verifyJWT, upload.single("profilePicture"), updateUserProfilePicture);
 
-router.route("/c/:username").get(verifyJWT, getUserProfile);
+router.route("/user/c/:username").get(verifyJWT, getUserProfile);
 
 export default router;

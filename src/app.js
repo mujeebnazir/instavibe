@@ -28,10 +28,10 @@ import commentRouter from "./routes/comment.routes.js";
 //routes decleration  http://localhost:8080/api/v1/users
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/posts", postRouter);
-app.use("/api/v1/follow", followRouter);
-app.use("/api/v1/share", shareRouter);
+app.use("/api/v1/follows", followRouter);
+app.use("/api/v1/shares", shareRouter);
 app.use("/api/v1/likes", likeRouter);
-app.use("/api/v1/storie", storieRouter);
+app.use("/api/v1/stories", storieRouter);
 app.use("/api/v1/comments", commentRouter);
 //
 export { app };

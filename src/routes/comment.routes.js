@@ -7,10 +7,10 @@ import {
   deleteComment,
 } from "../controllers/comment.controllers.js";
 const router = Router();
-router.route("/comments-post/c/:postId").get(getPostComments);
+router.route("/post/c/:postId").get(getPostComments);
 router.route("/post/c/:postId/add-comment").post(verifyJWT, addComment);
 router
   .route("/post/c/:postId/update-comment/c/:commentId")
-  .post(verifyJWT, updateComment);
+  .patch(verifyJWT, updateComment);
 router.route("/delete-comment/c/:commentId").delete(verifyJWT, deleteComment);
 export default router;

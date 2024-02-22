@@ -52,7 +52,7 @@ const addComment = asyncHandler(async (req, res) => {
 
   const comment = await Comment.create({
     content: content,
-    postId: postId,
+    postId: new mongoose.Types.ObjectId(postId),
     owner: req.user?._id,
   });
 

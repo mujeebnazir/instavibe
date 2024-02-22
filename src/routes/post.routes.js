@@ -12,7 +12,7 @@ const router = Router();
 
 router.route("/all-posts").get(verifyJWT, getAllPosts);
 router.route("/user/create-post").post(verifyJWT, createPost);
-router.route("/post/c/:postId").get(verifyJWT, getThePost);
+router.route("/c/:postId").get(verifyJWT, getThePost);
 router.route("/post/c/:postId/update").post(verifyJWT, updatePost);
 router.route("/post/c/:postId/delete").delete(verifyJWT, deletePost);
 router
