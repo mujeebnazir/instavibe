@@ -46,7 +46,7 @@ const registerUser = asyncHandler(async (req, res) => {
   if (!profilePicLocalPath) {
     throw new ApiError(404, "Profile picture not found!");
   }
-
+  console.log(profilePicLocalPath);
   const profilePicture = await uploadOnCloudinary(profilePicLocalPath);
   if (!profilePicture) {
     throw new ApiError(400, "Error while uploading to cloudinary");
@@ -90,8 +90,9 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Password is incorrect");
   }
 
-  const { accessToken, refreshToken } =
-    await user.generateRefreshAndAccessToken(user._id);
+  const { accessToken, refreshToken } = await generateRefreshAndAccessToken(
+    user._id
+  );
 
   const loggedInUser = await User.findById(user._id).select(
     "-password -refreshToken"
@@ -181,7 +182,7 @@ const updateUserProfilePicture = asyncHandler(async (req, res) => {
       $set: { profilePicture: profile.url },
     },
     { new: true }
-  ).select("-password");
+  ).select("-password refreshToken");
 
   return res
     .status(200)
@@ -200,7 +201,7 @@ const updateAccountDeatils = asyncHandler(async (req, res) => {
       $set: { displayName: displayName, email: email, about: about },
     },
     { new: true }
-  ).select("-password");
+  ).select("-password -refreshToken");
 
   return res
     .status(200)
