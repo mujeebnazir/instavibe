@@ -21,7 +21,7 @@ const uploadOnCloudinary = async (localPath) => {
       throw new ApiError(400, "Didn't get any response!");
     }
     fs.unlinkSync(localPath);
-    console.log(response);
+
     return response;
   } catch (error) {
     console.log(error);

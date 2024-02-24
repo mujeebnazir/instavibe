@@ -42,7 +42,7 @@ const getAllPosts = asyncHandler(async (req, res) => {
   if (currentUserId) {
     pipeline.push({
       $match: {
-        owner: mongoose.Types.ObjectId(currentUserId),
+        owner: new mongoose.Types.ObjectId(currentUserId),
       },
     });
   }
@@ -72,12 +72,14 @@ const getAllPosts = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(
-      new ApiResponse(200, result, "Successfully fetched followed users' posts")
+      new ApiResponse(200, result, "Successfully fetched loggedIn user's posts")
     );
 });
 const createPost = asyncHandler(async (req, res) => {
   const { description } = req.body;
-  const postLocalPath = req.files?.path;
+
+  const postLocalPath = req.files?.post[0]?.path;
+
   if (!postLocalPath) {
     throw new ApiError(404, "Post not found");
   }
@@ -111,7 +113,7 @@ const getThePost = asyncHandler(async (req, res) => {
 
   const postDetails = await Post.aggregate([
     {
-      $match: { _id: postId },
+      $match: { _id: new mongoose.Types.ObjectId(postId) },
     },
     {
       $lookup: {

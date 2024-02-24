@@ -12,6 +12,6 @@ router
   .route("/create-storie")
   .post(verifyJWT, upload.single("content"), createStorie);
 router.route("/active-stories").get(verifyJWT, getActiveStories);
-router.route("/delete-storie").delete(verifyJWT, deleteStorie);
+router.route("/delete-storie/c/:storieId").delete(verifyJWT, deleteStorie);
 
 export default router;

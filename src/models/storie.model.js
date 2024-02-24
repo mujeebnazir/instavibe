@@ -7,6 +7,7 @@ const storieSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
     },
+    isActive: { type: Boolean },
   },
   { timestamps: true }
 );

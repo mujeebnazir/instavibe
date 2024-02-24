@@ -5,17 +5,20 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { Storie } from "../models/storie.model.js";
-import { User } from "../models/user.model.js";
+
+import { Follow } from "../models/follow.model.js";
 import { isValidObjectId } from "mongoose";
 
 const createStorie = asyncHandler(async (req, res) => {
-  const storieLocalPath = req.files?.path;
-  const storie = await uploadOnCloudinary(storieLocalPath);
+  const storieLocalPath = req.file?.path;
+
+  const storieUrl = await uploadOnCloudinary(storieLocalPath);
 
   try {
-    await Storie.create({
-      content: storie.url,
+    const storie = await Storie.create({
+      content: storieUrl?.url,
       owner: req.user._id,
+      isActive: true,
     });
 
     return res
@@ -29,36 +32,69 @@ const createStorie = asyncHandler(async (req, res) => {
     );
   }
 });
+// const getActiveStories = asyncHandler(async (req, res) => {
+//   const currentTime = new Date();
+
+//   const activeStories = await Storie.aggregate([
+//     {
+//       $lookup: {
+//         from: "follows",
+//         localField: "owner",
+//         foreignField: "followingId",
+//         as: "following",
+//       },
+//     },
+//     {
+//       $match: {
+//         $and: [
+//           { "following.followerId": req.user?._id },
+//           { createdAt: { $gte: new Date(currentTime - 24 * 60 * 60 * 1000) } }, // Assuming a 24-hour expiration
+//         ],
+//       },
+//     },
+//   ]);
+//   if (!activeStories.length) {
+//     throw new ApiError(400, "zero active stories or Error while aggregating");
+//   }
+
+//   return res
+//     .status(200)
+//     .json(
+//       new ApiResponse(200, activeStories, "Active stories fetched successfully")
+//     );
+// });
+
 const getActiveStories = asyncHandler(async (req, res) => {
-  const currentTime = new Date();
+  try {
+    const currentUser = req.user._id;
 
-  const activeStories = await Storie.aggregate([
-    {
-      $lookup: {
-        from: "follows",
-        localField: "owner",
-        foreignField: "followingId",
-        as: "following",
-      },
-    },
-    {
-      $match: {
-        $and: [
-          { "following.followerId": req.user?._id },
-          { createdAt: { $gte: new Date(currentTime - 24 * 60 * 60 * 1000) } }, // Assuming a 24-hour expiration
-        ],
-      },
-    },
-  ]);
-  if (!activeStories.length) {
-    throw new ApiError(400, "zero active stories or Error while aggregating");
-  }
+    // Find the users that the current user is following
+    const followingIds = await Follow.find({
+      followerId: currentUser,
+    }).distinct("followingId");
+    console.log(followingIds);
+    // Find active stories of the users that the current user is following
+    const activeStories = await Storie.find({
+      owner: { $in: [...followingIds, currentUser] },
+      isActive: true,
+    }).populate("owner", "username displayName profilePicture");
 
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(200, activeStories, "Active stories fetched successfully")
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          activeStories,
+          "Active stories fetched successfully"
+        )
+      );
+  } catch (error) {
+    console.log(error);
+    throw new ApiError(
+      500,
+      "Internal server error: Something went wrong fetching active stories"
     );
+  }
 });
 const deleteStorie = asyncHandler(async (req, res) => {
   const { storieId } = req.params;
