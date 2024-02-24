@@ -68,9 +68,6 @@ const getUserFollowers = asyncHandler(async (req, res) => {
       },
     },
   ]);
-  if (followersList.length == 0) {
-    throw new ApiError(404, "No subscribers found!!");
-  }
 
   return res
     .status(200)
@@ -111,9 +108,6 @@ const getUserFollowings = asyncHandler(async (req, res) => {
     },
   ]);
 
-  if (followingList.length === 0) {
-    throw new ApiError(404, "followingList is empty");
-  }
   return res
     .status(200)
     .json(
