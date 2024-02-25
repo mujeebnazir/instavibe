@@ -2,29 +2,13 @@ import mongoose, { Schema } from "mongoose";
 
 const chatSchema = new Schema(
   {
-    senderId: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-    },
-    receiverId: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-    },
-    content: {
-      type: String,
-      required: true,
-      maxlength: 1000,
-    },
-    readFlag: {
-      type: Boolean,
-      required: true,
-    },
-    seenBy: [
+    participants: [
       {
         type: Schema.Types.ObjectId,
         ref: "User",
       },
     ],
+    messages: [{ type: Schema.Types.ObjectId, ref: "Message" }], // Reference to the Message model
   },
   { timestamps: true }
 );

@@ -1,8 +1,12 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import http from "http";
+import { Server as SocketIOServer } from "socket.io";
 
 const app = express();
+const server = http.createServer(app);
+const io = new SocketIOServer(server);
 
 app.use(
   cors({
@@ -15,6 +19,24 @@ app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 app.use(cookieParser());
+
+//socket settings
+
+server.listen(3000, () => {
+  console.log(`Server is listening on 3000`);
+});
+
+io.on("connection", (socket) => {
+  console.log(`User connected`);
+
+  socket.on("message", (msg) => {
+    io.emit("message", msg);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("user disconnected");
+  });
+});
 
 //routes
 import userRouter from "./routes/user.routes.js";

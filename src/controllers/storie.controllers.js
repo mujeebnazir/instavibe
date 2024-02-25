@@ -118,29 +118,45 @@ const deleteStorie = asyncHandler(async (req, res) => {
     );
   }
 });
-const deleteExpiredStories = async () => {
+const deleteExpiredStories = asyncHandler(async () => {
   try {
     const currentTime = new Date();
 
     // Find and delete all stories that have completed 24 hours
-    const expiredStories = await Storie.find({
-      createdAt: { $lt: new Date(currentTime - 24 * 60 * 60 * 1000) }, // Assuming a 24-hour expiration
-    });
+    // const expiredStories = await Storie.find({
+    //   createdAt: { $lt: new Date(currentTime - 24 * 60 * 60 * 1000) }, // Assuming a 24-hour expiration
+    // });
 
-    if (expiredStories.length > 0) {
-      // Delete the expired stories
-      await Storie.deleteMany({
-        createdAt: { $lt: new Date(currentTime - 24 * 60 * 60 * 1000) }, // Assuming a 24-hour expiration
-      });
+    // if (expiredStories.length > 0) {
+    //   // Delete the expired stories
+    //   await Storie.deleteMany({
+    //     createdAt: { $lt: new Date(currentTime - 24 * 60 * 60 * 1000) }, // Assuming a 24-hour expiration
+    //   });
 
-      console.log(`${expiredStories.length} stories deleted successfully.`);
+    //   console.log(`${expiredStories.length} stories deleted successfully.`);
+    // } else {
+    //   console.log("No expired stories found.");
+    // }
+
+    const expiredStories = await Storie.updateMany(
+      {
+        isActive: true,
+        createdAt: { $lt: new Date(currentTime - 24 * 60 * 60 * 1000) },
+      },
+      { $set: { isActive: false } }
+    );
+
+    if (expiredStories.nModified > 0) {
+      console.log(
+        `${expiredStories.nModified} stories deactivated successfully.`
+      );
     } else {
-      console.log("No expired stories found.");
+      console.log("No stories to deactivate.");
     }
   } catch (error) {
     console.error("Error while deleting expired stories:", error);
   }
-};
+});
 
 cron.schedule("0 0 * * *", deleteExpiredStories);
 
